@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import {
   createStockAccount,
@@ -8,6 +8,7 @@ import {
 } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
 import { type StockAccount, type Stock } from "../types";
+import AccountDetail from "../components/AccountDetails";
 
 const Dashboard = () => {
   const { currentUser } = useAuth();
@@ -18,6 +19,10 @@ const Dashboard = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const recordRef = useRef<{
+    [symbol: string]: { [accountId: string]: boolean, duplicate: boolean };
+  }>({});
+
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
@@ -27,7 +32,20 @@ const Dashboard = () => {
         setAccounts(fetchedAccounts);
 
         const fetchedStocks = await getAllStocks(currentUser.uid);
+
         setStocks(fetchedStocks);
+
+        recordRef.current = {};
+
+        fetchedStocks.forEach((stock) => {
+          if (recordRef.current[stock.symbol]) {
+            recordRef.current[stock.symbol][stock.accountId] = true;
+            recordRef.current[stock.symbol].duplicate = true;
+          } else {
+            recordRef.current[stock.symbol] = { [stock.accountId]: true, duplicate: false };
+          }
+        });
+
       } catch (err) {
         setError("獲取資料失敗");
         console.error(err);
@@ -131,6 +149,12 @@ const Dashboard = () => {
               <p className="text-gray-600 mb-4">
                 股票數量: {getStockCountByAccount(account.id)}
               </p>
+
+
+              <AccountDetail
+                accountId={account.id}
+                stockRecord={recordRef.current}
+              />
             </div>
           ))
         )}

@@ -4,7 +4,6 @@ import PrivateRoute from './components/PrivateRoute';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
-import AccountDetail from './pages/Dashboard';
 
 const App = () => {
   const basePath = import.meta.env.BASE_URL || '/';
@@ -20,11 +19,7 @@ const App = () => {
               <Dashboard />
             </PrivateRoute>
           } />
-          <Route path="/account/:accountId" element={
-            <PrivateRoute>
-              <AccountDetail />
-            </PrivateRoute>
-          } />
+        
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </AuthProvider>
